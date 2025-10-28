@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  app:
+    image: php:8.2-apache
+    container_name: cbc_php_app
+    volumes:
+      - ..:/workspace:cached
+      - ../public:/var/www/html
+    ports:
+      - "8080:80"
+    depends_on:
+      - db
+    environment:
+      - APACHE_DOCUMENT_ROOT=/var/www/html
+      - DB_HOST=db
+      - DB_NAME=cbc_hub
+      - DB_USER=root
+      - DB_PASSWORD=rootpassword
+    command: >
+      bash -c "
+      docker-php-ext-install mysqli pdo pdo_mysql &&
+      a2enmod rewrite &&
+      echo 'ServerName localhost' >> /etc/apache2/apache2.conf &&
+      curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer &&
+      apache2-foreground
+      "
+    user: root
+
+  db:
+    image: mysql:8.0
+    container_name: cbc_mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: cbc_hub
+      MYSQL_USER: cbc_user
+      MYSQL_PASSWORD: cbc_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: cbc_phpmyadmin
+    restart: always
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: db
+      PMA_USER: root
+      PMA_PASSWORD: rootpassword
+    depends_on:
+      - db
+
+volumes:
+  mysql_data:

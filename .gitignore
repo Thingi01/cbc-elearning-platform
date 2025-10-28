@@ -1,0 +1,43 @@
+# Dependencies
+/vendor/
+composer.lock
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Uploaded files (but keep the directory)
+/uploads/*
+!/uploads/.gitkeep
+
+# Log files
+*.log
+/logs/*
+!/logs/.gitkeep
+
+# Cache
+/cache/*
+!/cache/.gitkeep
+/tmp/*
+!/tmp/.gitkeep
+
+# Database dumps
+*.sql.gz
+*.sql.zip
+backup_*.sql
+
+# Config files with sensitive data
+config/local.php
+config/secrets.php
