@@ -5,27 +5,35 @@ services:
     image: php:8.2-apache
     container_name: cbc_php_app
     volumes:
-      - ..:/workspace:cached
-      - ../public:/var/www/html
+      - ../:/workspace:cached
     ports:
       - "8080:80"
     depends_on:
       - db
     environment:
-      - APACHE_DOCUMENT_ROOT=/var/www/html
+      - APACHE_DOCUMENT_ROOT=/workspace/public
       - DB_HOST=db
       - DB_NAME=cbc_hub
       - DB_USER=root
       - DB_PASSWORD=rootpassword
+    working_dir: /workspace
     command: >
       bash -c "
+      apt-get update && apt-get install -y git unzip &&
       docker-php-ext-install mysqli pdo pdo_mysql &&
       a2enmod rewrite &&
+      echo '<Directory /workspace/public>' > /etc/apache2/conf-available/devcontainer.conf &&
+      echo '    AllowOverride All' >> /etc/apache2/conf-available/devcontainer.conf &&
+      echo '    Require all granted' >> /etc/apache2/conf-available/devcontainer.conf &&
+      echo '</Directory>' >> /etc/apache2/conf-available/devcontainer.conf &&
+      a2enconf devcontainer &&
+      sed -i 's|/var/www/html|/workspace/public|g' /etc/apache2/sites-available/000-default.conf &&
       echo 'ServerName localhost' >> /etc/apache2/apache2.conf &&
       curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer &&
+      mkdir -p /workspace/uploads /workspace/logs /workspace/cache &&
+      chmod -R 777 /workspace/uploads /workspace/logs /workspace/cache &&
       apache2-foreground
       "
-    user: root
 
   db:
     image: mysql:8.0
@@ -41,6 +49,7 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    command: --default-authentication-plugin=mysql_native_password
 
   phpmyadmin:
     image: phpmyadmin:latest
@@ -52,6 +61,7 @@ services:
       PMA_HOST: db
       PMA_USER: root
       PMA_PASSWORD: rootpassword
+      PMA_ARBITRARY: 1
     depends_on:
       - db
 
