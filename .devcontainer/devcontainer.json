@@ -44,8 +44,6 @@
   },
 
   // Commands to run after container is created
-  "postCreateCommand": "composer install && chmod -R 777 /workspace/uploads && mysql -h db -u root -prootpassword -e 'CREATE DATABASE IF NOT EXISTS cbc_hub;'",
-
-  // Keep container running
-  "remoteUser": "vscode"
+  "postCreateCommand": "chmod -R 777 /workspace/uploads /workspace/logs /workspace/cache 2>/dev/null || true",
+   "remoteUser": "root"
 }
